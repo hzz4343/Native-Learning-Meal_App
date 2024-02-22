@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { View, StyleSheet, FlatList } from 'react-native';
 import { MEALS, CATEGORIES } from '../data/dummy-data';
 import MealItem from '../components/MealItem';
 import { useLayoutEffect } from 'react';
@@ -23,6 +23,7 @@ function MealsOverviewScreen({ route, navigation }) {
     const item = itemData.item;
 
     const mealItemProps = {
+      id: item.id,
       title: item.title,
       imageUrl: item.imageUrl,
       affordability: item.affordability,
