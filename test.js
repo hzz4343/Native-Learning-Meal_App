@@ -1,83 +1,95 @@
-import {
-  View,
-  Pressable,
-  Text,
-  Image,
-  StyleSheet,
-  Platform,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useLayoutEffect } from 'react';
+import { View, Text, Image, StyleSheet, ScrollView } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 
-import MealDetails from '../MealDetails';
+import IconButton from '../components/IconButton';
+import List from '../components/MealDetail/List';
+import Subtitle from '../components/MealDetail/Subtitle';
+import MealDetails from '../components/MealDetails';
+import { MEALS } from '../data/dummy-data';
+import { addFavorite, removeFavorite } from '../store/redux/favorites';
+// import { FavoritesContext } from '../store/context/favorites-context';
 
-function MealItem({
-  id,
-  title,
-  imageUrl,
-  duration,
-  complexity,
-  affordability,
-}) {
-  const navigation = useNavigation();
+function MealDetailScreen({ route, navigation }) {
+  // const favoriteMealsCtx = useContext(FavoritesContext);
+  const favoriteMealIds = useSelector((state) => state.favoriteMeals.ids);
+  const dispatch = useDispatch();
 
-  function selectMealItemHandler() {
-    navigation.navigate('MealDetail', {
-      mealId: id,
-    });
+  const mealId = route.params.mealId;
+  const selectedMeal = MEALS.find((meal) => meal.id === mealId);
+
+  const mealIsFavorite = favoriteMealIds.includes(mealId);
+
+  function changeFavoriteStatusHandler() {
+    if (mealIsFavorite) {
+      // favoriteMealsCtx.removeFavorite(mealId);
+      dispatch(removeFavorite({ id: mealId }));
+    } else {
+      // favoriteMealsCtx.addFavorite(mealId);
+      dispatch(addFavorite({ id: mealId }));
+    }
   }
 
-  return (
-    <View style={styles.mealItem}>
-      <Pressable
-        android_ripple={{ color: '#ccc' }}
-        style={({ pressed }) => (pressed ? styles.buttonPressed : null)}
-        onPress={selectMealItemHandler}
-      >
-        <View style={styles.innerContainer}>
-          <View>
-            <Image source={{ uri: imageUrl }} style={styles.image} />
-            <Text style={styles.title}>{title}</Text>
-          </View>
-          <MealDetails
-            duration={duration}
-            affordability={affordability}
-            complexity={complexity}
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => {
+        return (
+          <IconButton
+            icon={mealIsFavorite ? 'star' : 'star-outline'}
+            color="white"
+            onPress={changeFavoriteStatusHandler}
           />
+        );
+      },
+    });
+  }, [navigation, changeFavoriteStatusHandler]);
+
+  return (
+    <ScrollView style={styles.rootContainer}>
+      <Image style={styles.image} source={{ uri: selectedMeal.imageUrl }} />
+      <Text style={styles.title}>{selectedMeal.title}</Text>
+      <MealDetails
+        duration={selectedMeal.duration}
+        complexity={selectedMeal.complexity}
+        affordability={selectedMeal.affordability}
+        textStyle={styles.detailText}
+      />
+      <View style={styles.listOuterContainer}>
+        <View style={styles.listContainer}>
+          <Subtitle>Ingredients</Subtitle>
+          <List data={selectedMeal.ingredients} />
+          <Subtitle>Steps</Subtitle>
+          <List data={selectedMeal.steps} />
         </View>
-      </Pressable>
-    </View>
+      </View>
+    </ScrollView>
   );
 }
 
-export default MealItem;
+export default MealDetailScreen;
 
 const styles = StyleSheet.create({
-  mealItem: {
-    margin: 16,
-    borderRadius: 8,
-    overflow: Platform.OS === 'android' ? 'hidden' : 'visible',
-    backgroundColor: 'white',
-    elevation: 4,
-    shadowColor: 'black',
-    shadowOpacity: 0.25,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-  },
-  buttonPressed: {
-    opacity: 0.5,
-  },
-  innerContainer: {
-    borderRadius: 8,
-    overflow: 'hidden',
+  rootContainer: {
+    marginBottom: 32,
   },
   image: {
     width: '100%',
-    height: 200,
+    height: 350,
   },
   title: {
     fontWeight: 'bold',
-    textAlign: 'center',
-    fontSize: 18,
+    fontSize: 24,
     margin: 8,
+    textAlign: 'center',
+    color: 'white',
+  },
+  detailText: {
+    color: 'white',
+  },
+  listOuterContainer: {
+    alignItems: 'center',
+  },
+  listContainer: {
+    width: '80%',
   },
 });
