@@ -1,71 +1,83 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Button } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createDrawerNavigator } from '@react-navigation/drawer';
+import {
+  View,
+  Pressable,
+  Text,
+  Image,
+  StyleSheet,
+  Platform,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
-import CategoriesScreen from './screens/CategoriesScreen';
-import MealsOverviewScreen from './screens/MealsOverviewScreen';
-import MealDetailScreen from './screens/MealDetailScreen';
-import FavoritesScreen from './screens/FavoritesScreen';
+import MealDetails from '../MealDetails';
 
-const Stack = createNativeStackNavigator();
-const Drawer = createDrawerNavigator();
+function MealItem({
+  id,
+  title,
+  imageUrl,
+  duration,
+  complexity,
+  affordability,
+}) {
+  const navigation = useNavigation();
 
-function DrawerNavigator() {
+  function selectMealItemHandler() {
+    navigation.navigate('MealDetail', {
+      mealId: id,
+    });
+  }
+
   return (
-    <Drawer.Navigator
-      screenOptions={{
-        headerStyle: { backgroundColor: '#351401' },
-        headerTintColor: 'white',
-        sceneContainerStyle: { backgroundColor: '#3f2f25' },
-      }}
-    >
-      <Drawer.Screen
-        name="Categories"
-        component={CategoriesScreen}
-        options={{
-          title: 'All Categories',
-        }}
-      />
-      <Drawer.Screen name="Favorites" component={FavoritesScreen} />
-    </Drawer.Navigator>
+    <View style={styles.mealItem}>
+      <Pressable
+        android_ripple={{ color: '#ccc' }}
+        style={({ pressed }) => (pressed ? styles.buttonPressed : null)}
+        onPress={selectMealItemHandler}
+      >
+        <View style={styles.innerContainer}>
+          <View>
+            <Image source={{ uri: imageUrl }} style={styles.image} />
+            <Text style={styles.title}>{title}</Text>
+          </View>
+          <MealDetails
+            duration={duration}
+            affordability={affordability}
+            complexity={complexity}
+          />
+        </View>
+      </Pressable>
+    </View>
   );
 }
 
-export default function App() {
-  return (
-    <>
-      <StatusBar style="light" />
-      <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{
-            headerStyle: { backgroundColor: '#351401' },
-            headerTintColor: 'white',
-            contentStyle: { backgroundColor: '#3f2f25' },
-          }}
-        >
-          <Stack.Screen
-            name="Drawer"
-            component={DrawerNavigator}
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen name="MealsOverview" component={MealsOverviewScreen} />
-          <Stack.Screen
-            name="MealDetail"
-            component={MealDetailScreen}
-            options={{
-              title: 'About the Meal',
-            }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </>
-  );
-}
+export default MealItem;
 
 const styles = StyleSheet.create({
-  container: {},
+  mealItem: {
+    margin: 16,
+    borderRadius: 8,
+    overflow: Platform.OS === 'android' ? 'hidden' : 'visible',
+    backgroundColor: 'white',
+    elevation: 4,
+    shadowColor: 'black',
+    shadowOpacity: 0.25,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+  },
+  buttonPressed: {
+    opacity: 0.5,
+  },
+  innerContainer: {
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  image: {
+    width: '100%',
+    height: 200,
+  },
+  title: {
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontSize: 18,
+    margin: 8,
+  },
 });
